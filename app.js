@@ -1,59 +1,62 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-
-
-
-// mongo db connection 
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const session = require('express-session');
 const mongoose = require('mongoose');
+
+const app = express();
+
+// Database connection
 mongoose.connect('mongodb://127.0.0.1:27017/event-management', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
-  console.log("MongoDB Connected ✅");
+  console.log("✅ MongoDB Connected");
 }).catch(err => {
-  console.error("MongoDB Error ❌", err);
+  console.error("❌ MongoDB Error:", err);
 });
 
+// Session middleware (before routes)
+app.use(session({
+  secret: 'your_secret_key', // Replace with a strong secret
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
+}));
 
-
-
-
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
-var app = express();
-
-// view engine setup
+// View engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// Middleware
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Routers
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const adminRouter = require('./routes/admin');
+const authRoutes = require('./routes/auth');
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-const adminRouter = require('./routes/admin');
 app.use('/admin', adminRouter);
+app.use('/', authRoutes); // auth routes for login/signup
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
+// 404 handler
+app.use((req, res, next) => {
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
+// Error handler
+app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
   res.status(err.status || 500);
   res.render('error');
 });
