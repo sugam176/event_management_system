@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const flash = require('connect-flash');
 
 const app = express();
 
@@ -18,6 +19,9 @@ mongoose.connect('mongodb://127.0.0.1:27017/event-management', {
   console.error("❌ MongoDB Error:", err);
 });
 
+
+
+
 // Session middleware (before routes)
 app.use(session({
   secret: 'your_secret_key', // Replace with a strong secret
@@ -25,6 +29,17 @@ app.use(session({
   saveUninitialized: true,
   cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
 }));
+
+app.use(flash())
+app.use('/uploads', express.static('uploads'));
+
+
+// Make flash messages available in all views
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  next();
+});
 
 // View engine
 app.set('views', path.join(__dirname, 'views'));
@@ -42,16 +57,26 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
 const authRoutes = require('./routes/auth');
+const registerRoutes = require('./routes/register');
+const settingsRouter = require('./routes/settings');
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/admin', adminRouter);
 app.use('/', authRoutes); // auth routes for login/signup
+app.use("/", registerRoutes)
+app.use('/settings', settingsRouter);
+app.use('/events', indexRouter); // Assuming indexRouter handles events as well);
+
+
+
 
 // 404 handler
 app.use((req, res, next) => {
   next(createError(404));
 });
+
+
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -60,5 +85,18 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.render('error');
 });
+
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  next();
+});
+
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+});
+
+
 
 module.exports = app;

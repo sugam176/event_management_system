@@ -9,7 +9,7 @@ const Schedule = require('../models/Schedule');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'public/uploads/');
-},
+  },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
   }
@@ -17,18 +17,18 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // GET form (optional for direct access)
-router.get('/schedule', (req, res) => {
-  res.render('schedule');
+router.get('/createEvent', (req, res) => {
+  res.render('createEvent');
 });
 
 // POST form
-router.post('/schedule', upload.single('image'), async (req, res) => {
+router.post('/createEvent', upload.single('image'), async (req, res) => {
   try {
-    const { title, description, type, date } = req.body;
+    const { title, description, type, date, venue, pricing, time } = req.body;
     console.log(req.body)
     const image = req.file ? req.file.filename : null;
 
-    const newSchedule = new Schedule({ title, description, type, date, image });
+    const newSchedule = new Schedule({ title, description, type, date, venue, pricing, time, image });
     await newSchedule.save();
 
     res.redirect('/'); // redirect after save

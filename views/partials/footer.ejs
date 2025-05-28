@@ -1,0 +1,51 @@
+  <!-- Footer -->
+  <footer class="text-center mt-5">
+    <div class="container">
+      <p class="mb-0">&copy; <%= new Date().getFullYear() %> EventPro. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showEventDetails(id, title, description, type, date, image) {
+      const imgElement = document.getElementById('modalEventImage');
+      const badgeElement = document.getElementById('modalEventBadge');
+      const titleElement = document.getElementById('modalEventTitle');
+      const descriptionElement = document.getElementById('modalEventDescription');
+      const dateElement = document.getElementById('modalEventDate');
+      const registerLink = document.getElementById('modalRegisterLink');
+      const imgContainer = document.getElementById('eventImageContainer');
+
+      titleElement.textContent = title;
+      descriptionElement.textContent = description;
+
+      const eventDate = new Date(date);
+      dateElement.textContent = eventDate.toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      let badgeClass = '';
+      if (type === 'Cultural') badgeClass = 'bg-info';
+      else if (type === 'Food') badgeClass = 'bg-success';
+      else if (type === 'Notice') badgeClass = 'bg-warning text-dark';
+      else badgeClass = 'bg-secondary';
+
+      badgeElement.textContent = type;
+      badgeElement.className = 'badge modal-badge ' + badgeClass;
+
+      if (image) {
+        imgElement.src = '/uploads/' + image;
+        imgElement.alt = title + ' Image';
+        imgElement.style.display = 'block';
+        imgContainer.style.display = 'block';
+      } else {
+        imgElement.style.display = 'none';
+        imgContainer.style.display = 'none';
+      }
+
+      registerLink.href = '/register/' + id;
+    }
+  </script>
+</body>
+</html>

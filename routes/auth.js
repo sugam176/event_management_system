@@ -1,109 +1,170 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const bcrypt = require("bcrypt");
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 
-// Gmail transporter setup
+// Multer config
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({
+  storage,
+  fileFilter: function (req, file, cb) {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  }
+});
+
+// Gmail transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'sugamra2001@gmail.com',
-    pass: 'mjjrsbkfgztvshbg', // Gmail App Password (not real one!)
+    pass: 'mjjrsbkfgztvshbg',
   },
 });
 
-// GET: Signup page
+// GET signup
 router.get('/signup', (req, res) => {
   res.render('signup');
 });
 
-// POST: Signup - send OTP (but don't save user yet)
-router.post('/signup', async (req, res) => {
-  const { name, email } = req.body;
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpires = Date.now() + 5 * 60 * 1000;
-
-  // Temporarily store OTP in session
-  req.session.tempUser = { name, email, otp, otpExpires };
-
-  await transporter.sendMail({
-    from: 'sugamra2001@gmail.com',
-    to: email,
-    subject: 'Your OTP Code for Signup',
-    html: `<p>Hi ${name}, your OTP is <b>${otp}</b>. It expires in 5 minutes.</p>`,
-  });
-
-  res.render('verify-otp', { email });
-});
-
-// GET: Login page
+// GET login
 router.get('/login', (req, res) => {
   res.render('login');
 });
 
-// POST: Login - send OTP (existing users only)
-router.post('/send-otp', async (req, res) => {
-  const { email } = req.body;
+// POST signup
+router.post('/signup', upload.single('photo'), async (req, res) => {
+  try {
+    const { name, email, password, number } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) return res.send('User not found!');
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpires = Date.now() + 5 * 60 * 1000;
-
-  user.otp = otp;
-  user.otpExpires = otpExpires;
-  await user.save();
-
-  await transporter.sendMail({
-    from: 'sugamra2001@gmail.com',
-    to: email,
-    subject: 'Your OTP Code for Login',
-    html: `<p>Your OTP is <b>${otp}</b>. It expires in 5 minutes.</p>`,
-  });
-
-  res.render('verify-otp', { email });
-});
-
-// POST: Verify OTP (signup or login)
-router.post('/verify-otp', async (req, res) => {
-  const { email, otp } = req.body;
-
-  // Check if this is signup (from session)
-  if (req.session.tempUser && req.session.tempUser.email === email) {
-    const { name, otp: sessionOtp, otpExpires } = req.session.tempUser;
-
-    if (otp !== sessionOtp || Date.now() > otpExpires) {
-      return res.send('Invalid or expired OTP');
+    if (!name || !email || !password || !number) {
+      req.flash('error_msg', 'All fields are required.');
+      return res.redirect('/signup');
     }
 
-    // Save user to DB now
-    const newUser = new User({ name, email });
-    await newUser.save();
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      req.flash('error_msg', 'Email is already registered.');
+      return res.redirect('/signup');
+    }
 
-    req.session.user = { email, name, id: newUser._id };
-    req.session.tempUser = null; // clear temp session
-    return res.redirect('/');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 5 * 60 * 1000;
+
+    let photoPath = '';
+    if (req.file) {
+      photoPath = '/' + req.file.filename;
+    }
+
+    req.session.tempUser = {
+      name,
+      email,
+      password: hashedPassword,
+      number,
+      photo: photoPath,
+      otp,
+      otpExpires
+    };
+
+    await transporter.sendMail({
+      from: 'sugamra2001@gmail.com',
+      to: email,
+      subject: 'OTP Verification',
+      html: `<p>Your OTP is <b>${otp}</b>. It will expire in 5 minutes.</p>`,
+    });
+
+    req.flash('success_msg', 'OTP sent to your email!');
+    res.render('verify-otp', { email });
+
+  } catch (err) {
+    console.error(err);
+    req.flash('error_msg', 'Failed to send OTP.');
+    res.redirect('/signup');
+  }
+});
+
+// POST verify OTP
+router.post('/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+  const tempUser = req.session.tempUser;
+
+  if (!tempUser || tempUser.email !== email) {
+    req.flash('error_msg', 'Session expired or email mismatch.');
+    return res.redirect('/signup');
   }
 
-  // Otherwise it's login
+  if (otp !== tempUser.otp || Date.now() > tempUser.otpExpires) {
+    req.flash('error_msg', 'Invalid or expired OTP.');
+    return res.render('verify-otp', { email });
+  }
+
+  const newUser = new User({
+    email: tempUser.email,
+    password: tempUser.password,
+    number: tempUser.number,
+    name: tempUser.name,
+    photo: tempUser.photo || ''
+  });
+
+  await newUser.save();
+  req.session.user = { id: newUser._id, email: newUser.email };
+  req.session.tempUser = null;
+
+  req.flash('success_msg', 'Signup successful! You are now logged in.');
+  res.redirect('/');
+});
+
+// POST login
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    req.flash('error_msg', 'Email and password are required.');
+    return res.redirect('/login');
+  }
+
   const user = await User.findOne({ email });
-  if (!user || user.otp !== otp || Date.now() > user.otpExpires) {
-    return res.send('Invalid or expired OTP');
+  if (!user) {
+    req.flash('error_msg', 'User not found. Please signup first.');
+    return res.redirect('/signup');
   }
 
-  // Clear OTP and login
-  user.otp = null;
-  user.otpExpires = null;
-  await user.save();
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    req.flash('error_msg', 'Incorrect password.');
+    return res.redirect('/login');
+  }
 
   req.session.user = {
+    id: user._id,
     email: user.email,
-    name: user.name,
-    id: user._id
+    number: user.number,
+    photo: user.photo,
+    name: user.name
   };
 
+  req.flash('success_msg', 'Logged in successfully!');
   res.redirect('/');
+});
+
+// Logout
+router.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    req.flash('success_msg', 'You have logged out.');
+    res.redirect('/login');
+  });
 });
 
 module.exports = router;
