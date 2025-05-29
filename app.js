@@ -56,14 +56,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
-const authRoutes = require('./routes/auth');
+
 const registerRoutes = require('./routes/register');
 const settingsRouter = require('./routes/settings');
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/admin', adminRouter);
-app.use('/', authRoutes); // auth routes for login/signup
 app.use("/", registerRoutes)
 app.use('/settings', settingsRouter);
 app.use('/events', indexRouter); // Assuming indexRouter handles events as well);

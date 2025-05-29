@@ -1,470 +1,239 @@
-<%- include('partials/header', { user: user }) %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EventPro | Professional Events</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* Additional CSS for filter */
+      .form-select {
+        max-width: 250px;
+        cursor: pointer;
+      }
+      label.form-label {
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      .event-card {
+        transition: transform 0.2s ease;
+      }
+      .event-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      }
+      .register-btn {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      .register-btn:hover {
+        background-color: #0b5ed7;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-light shadow-sm">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+          <i class="fas fa-calendar-alt me-2"></i>EventPro
+        </a>
 
-<style>
-  :root {
-    --netflix-red: #e50914;
-    --netflix-dark: #141414;
-    --netflix-light: #f3f3f3;
-  }
-
-  body {
-    background-color: var(--netflix-dark);
-    color: white;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
-
-  .hero-section {
-    position: relative;
-    height: 60vh;
-    background: linear-gradient(
-      to top,
-      var(--netflix-dark) 0%,
-      transparent 100%
-    );
-    margin-bottom: 2rem;
-  }
-
-  .hero-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    z-index: -1;
-    opacity: 0.6;
-  }
-
-  .hero-content {
-    position: absolute;
-    bottom: 10%;
-    left: 5%;
-    max-width: 40%;
-  }
-
-  .hero-title {
-    font-size: 3.5rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .hero-description {
-    font-size: 1.2rem;
-    line-height: 1.4;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    margin-bottom: 1.5rem;
-  }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4%;
-    margin: 2rem 0 1rem;
-  }
-
-  .section-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-  }
-
-  .cards-container {
-    position: relative;
-    padding: 0 4%;
-  }
-
-  .cards-scroller {
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    padding: 1rem 0;
-    gap: 0.5rem;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .cards-scroller::-webkit-scrollbar {
-    display: none;
-  }
-
-  .event-card {
-    flex: 0 0 auto;
-    width: 220px;
-    transition: transform 0.3s ease;
-    position: relative;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .event-card:hover {
-    transform: scale(1.1);
-    z-index: 10;
-  }
-
-  .event-card:hover .card-overlay {
-    opacity: 1;
-  }
-
-  .card-image {
-    width: 100%;
-    height: 320px;
-    object-fit: cover;
-    display: block;
-  }
-
-  .card-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.9) 0%,
-      transparent 100%
-    );
-    padding: 1rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .card-title {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
-  }
-
-  .card-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: #d2d2d2;
-    margin-bottom: 0.8rem;
-  }
-
-  .card-description {
-    font-size: 0.85rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .card-button {
-    background-color: var(--netflix-red);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    transition: background-color 0.2s ease;
-  }
-
-  .card-button:hover {
-    background-color: #f40612;
-  }
-
-  .filter-section {
-    background-color: rgba(20, 20, 20, 0.9);
-    padding: 1.5rem 4%;
-    margin: 2rem 0;
-    border-radius: 8px;
-  }
-
-  .filter-title {
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .filter-title i {
-    color: var(--netflix-red);
-  }
-
-  .filter-controls {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .filter-select {
-    background-color: rgba(109, 109, 110, 0.2);
-    color: white;
-    border: 1px solid rgba(109, 109, 110, 0.5);
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    min-width: 180px;
-  }
-
-  .filter-select:focus {
-    outline: none;
-    border-color: white;
-  }
-
-  .filter-button {
-    background-color: var(--netflix-red);
-    color: white;
-    border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 4px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .filter-button:hover {
-    background-color: #f40612;
-  }
-
-  .no-events {
-    text-align: center;
-    padding: 5rem 0;
-  }
-
-  .no-events-icon {
-    font-size: 3rem;
-    color: var(--netflix-red);
-    margin-bottom: 1rem;
-  }
-
-  .no-events-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .no-events-text {
-    color: #d2d2d2;
-    max-width: 500px;
-    margin: 0 auto;
-  }
-
-  .scroll-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    width: 40px;
-    height: 80px;
-    z-index: 20;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-
-  .scroll-left {
-    left: 0;
-    border-radius: 0 4px 4px 0;
-  }
-
-  .scroll-right {
-    right: 0;
-    border-radius: 4px 0 0 4px;
-  }
-</style>
-
-<section class="hero-section">
-  <div
-    class="hero-backdrop"
-    style="background-image: url('/images/event-hero.jpg')"
-  ></div>
-  <div class="hero-content">
-    <h1 class="hero-title">Featured Event</h1>
-    <p class="hero-description">
-      Experience the most anticipated event of the year with exclusive
-      performances and activities you won't find anywhere else.
-    </p>
-    <a href="#" class="btn btn-danger btn-lg">Register Now</a>
-  </div>
-</section>
-
-<div class="filter-section">
-  <h3 class="filter-title"><i class="bi bi-funnel"></i> Filter Events</h3>
-  <div class="filter-controls">
-    <select class="filter-select" id="eventType">
-      <option value="all">All Categories</option>
-      <option value="Cultural">Cultural</option>
-      <option value="Food">Food & Drink</option>
-      <option value="Notice">Announcements</option>
-      <option value="Sports">Sports</option>
-      <option value="Workshop">Workshops</option>
-    </select>
-
-    <select class="filter-select" id="dateFilter">
-      <option value="all">Any Time</option>
-      <option value="today">Today</option>
-      <option value="week">This Week</option>
-      <option value="month">This Month</option>
-    </select>
-
-    <select class="filter-select" id="sortBy">
-      <option value="date-desc">Newest First</option>
-      <option value="date-asc">Oldest First</option>
-      <option value="title-asc">A-Z</option>
-      <option value="title-desc">Z-A</option>
-    </select>
-
-    <button class="filter-button" id="applyFilters">Apply</button>
-  </div>
-</div>
-
-<div class="section-header">
-  <h2 class="section-title">Upcoming Events</h2>
-  <div class="section-controls">
-    <button class="btn btn-outline-secondary btn-sm">See All</button>
-  </div>
-</div>
-
-<div class="cards-container">
-  <button class="scroll-arrow scroll-left">
-    <i class="bi bi-chevron-left"></i>
-  </button>
-  <div class="cards-scroller" id="upcomingEvents">
-    <% if (schedules && schedules.length > 0) { %> <%
-    schedules.forEach(function(schedule) { %>
-    <div
-      class="event-card"
-      data-type="<%= schedule.type || 'Cultural' %>"
-      data-date="<%= new Date(schedule.date).toISOString() %>"
-    >
-      <img
-        src="<%= schedule.photo || '/images/event-default.jpg' %>"
-        class="card-image"
-        alt="<%= schedule.title %>"
-      />
-      <div class="card-overlay">
-        <h4 class="card-title"><%= schedule.title %></h4>
-        <div class="card-meta">
-          <span><%= schedule.type || 'Cultural' %></span>
-          <span
-            ><%= new Date(schedule.date).toLocaleDateString('en-US', { month:
-            'short', day: 'numeric' }) %></span
-          >
+        <div class="d-flex align-items-center">
+          <% if (user) { %>
+          <!-- Profile Dropdown -->
+          <div class="dropdown">
+            <button
+              class="btn p-0 border-0 profile-btn rounded-circle overflow-hidden"
+              type="button"
+              id="profileDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              style="width: 40px; height: 40px;"
+            >
+              <img
+                src="/uploads/<%= user.photo %>"
+                alt="Profile"
+                style="width: 100%; height: 100%; object-fit: cover"
+              />
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-end"
+              aria-labelledby="profileDropdown"
+            >
+              <li>
+                <a class="dropdown-item" href="/profile">
+                  <i class="fas fa-user me-2"></i>Profile
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/events">
+                  <i class="fas fa-calendar me-2"></i>My Events
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/settings">
+                  <i class="fas fa-cog me-2"></i>Settings
+                </a>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a class="dropdown-item" href="/users/logout">
+                  <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </a>
+              </li>
+            </ul>
+          </div>
+          <% } else { %>
+          <!-- Auth Buttons -->
+          <a href="/users/login" class="btn nav-login nav-auth-btn me-2">
+            Login
+          </a>
+          <a href="/users/signup" class="btn nav-signup nav-auth-btn">
+            Sign Up
+          </a>
+          <% } %>
         </div>
-        <p class="card-description">
-          <%= schedule.description.length > 120 ?
-          schedule.description.substring(0, 120) + '...' : schedule.description
-          %>
-        </p>
-        <a href="/register/<%= schedule._id %>" class="card-button">Register</a>
       </div>
-    </div>
-    <% }) %> <% } else { %>
-    <div class="no-events">
-      <div class="no-events-icon"><i class="bi bi-calendar-x"></i></div>
-      <h3 class="no-events-title">No Upcoming Events</h3>
-      <p class="no-events-text">
-        Check back later for new events or try adjusting your filters.
-      </p>
-    </div>
-    <% } %>
-  </div>
-  <button class="scroll-arrow scroll-right">
-    <i class="bi bi-chevron-right"></i>
-  </button>
-</div>
+    </nav>
 
-<div class="section-header">
-  <h2 class="section-title">Popular Events</h2>
-  <div class="section-controls">
-    <button class="btn btn-outline-secondary btn-sm">See All</button>
-  </div>
-</div>
+    <!-- Filter Header -->
+    <section class="filter-header py-4 bg-light border-bottom mb-4">
+      <div class="container text-center">
+        <h1>Professional Events</h1>
+        <p class="text-muted">
+          Find conferences, workshops, and networking events to grow your career
+        </p>
+      </div>
+    </section>
 
-<div class="cards-container">
-  <button class="scroll-arrow scroll-left">
-    <i class="bi bi-chevron-left"></i>
-  </button>
-  <div class="cards-scroller" id="popularEvents">
-    <!-- Popular events would be populated similarly -->
-    <% if (schedules && schedules.length > 0) { %> <% schedules.slice(0,
-    5).forEach(function(schedule) { %>
-    <div class="event-card">
-      <img
-        src="<%= schedule.photo || '/images/event-default.jpg' %>"
-        class="card-image"
-        alt="<%= schedule.title %>"
-      />
-      <div class="card-overlay">
-        <h4 class="card-title"><%= schedule.title %></h4>
-        <div class="card-meta">
-          <span><%= schedule.type || 'Cultural' %></span>
-          <span
-            ><%= new Date(schedule.date).toLocaleDateString('en-US', { month:
-            'short', day: 'numeric' }) %></span
-          >
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Filter Dropdown -->
+      <div class="mb-4 d-flex justify-content-start">
+        <label for="typeFilter" class="form-label me-3">Filter by Event Type</label>
+        <select class="form-select w-auto" id="typeFilter" name="typeFilter" aria-label="Filter events by type">
+          <option value="" selected>All Types</option>
+          <option value="Cultural">Cultural</option>
+          <option value="Food">Food</option>
+          <option value="Notice">Notice</option>
+          <option value="Sports">Sports</option>
+          <option value="Workshop">Workshop</option>
+        </select>
+      </div>
+
+      <div class="row" id="eventsContainer">
+        <% schedules.forEach(schedule => { %>
+        <div class="col-md-6 col-lg-4">
+          <div class="card event-card mb-4 shadow-sm">
+            <div class="event-img-container position-relative">
+              <img
+                src="/uploads/<%= schedule.image %>"
+                class="card-img-top event-img"
+                alt="<%= schedule.title %>"
+                style="height: 180px; object-fit: cover;"
+              />
+              <span class="event-badge bg-info position-absolute top-0 start-0 m-2 px-3 py-1 rounded">
+                <%= schedule.type %>
+              </span>
+            </div>
+
+            <div class="card-body event-body">
+              <h5 class="card-title event-title"><%= schedule.title %></h5>
+              <p class="card-text event-desc"><%= schedule.description %></p>
+
+              <div class="event-meta mb-2 d-flex align-items-center text-muted">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                <span><%= schedule.venue %></span>
+              </div>
+
+              <div class="event-meta mb-2 d-flex align-items-center text-muted">
+                <i class="fas fa-clock me-2"></i>
+                <span><%= schedule.time %></span>
+              </div>
+
+              <div class="event-meta mb-3 d-flex align-items-center text-muted">
+                <i class="fas fa-money-bill-wave me-2"></i>
+                <span>Rs. <%= schedule.pricing %></span>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="event-date d-flex align-items-center text-muted">
+                  <i class="fas fa-calendar-alt me-2"></i>
+                  <span><%= new Date(schedule.date).toLocaleDateString() %></span>
+                </div>
+
+                <button class="register-btn btn btn-primary btn-sm">
+                  Register <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <p class="card-description">
-          <%= schedule.description.length > 120 ?
-          schedule.description.substring(0, 120) + '...' : schedule.description
-          %>
-        </p>
-        <a href="/register/<%= schedule._id %>" class="card-button">Register</a>
+        <% }) %>
       </div>
+
+      <!-- Pagination (Optional) -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          <li class="page-item active"><a class="page-link" href="#">1</a></li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">3</a></li>
+          <li class="page-item">
+            <a class="page-link" href="#" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
-    <% }) %> <% } %>
-  </div>
-  <button class="scroll-arrow scroll-right">
-    <i class="bi bi-chevron-right"></i>
-  </button>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Horizontal scrolling with arrows
-    const scrollContainers = document.querySelectorAll(".cards-container");
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Client-side filter by event type
+      document.addEventListener("DOMContentLoaded", () => {
+        const filterSelect = document.getElementById("typeFilter");
+        const eventCards = document.querySelectorAll(".event-card");
 
-    scrollContainers.forEach((container) => {
-      const scroller = container.querySelector(".cards-scroller");
-      const scrollLeft = container.querySelector(".scroll-left");
-      const scrollRight = container.querySelector(".scroll-right");
+        filterSelect.addEventListener("change", () => {
+          const selectedType = filterSelect.value;
 
-      scrollLeft.addEventListener("click", () => {
-        scroller.scrollBy({ left: -300, behavior: "smooth" });
+          eventCards.forEach(card => {
+            const eventType = card.querySelector(".event-badge").textContent.trim();
+
+            if (selectedType === "" || eventType === selectedType) {
+              card.parentElement.style.display = "block";
+            } else {
+              card.parentElement.style.display = "none";
+            }
+          });
+        });
       });
-
-      scrollRight.addEventListener("click", () => {
-        scroller.scrollBy({ left: 300, behavior: "smooth" });
-      });
-
-      // Hide arrows when at scroll boundaries
-      const checkScroll = () => {
-        scrollLeft.style.display = scroller.scrollLeft <= 0 ? "none" : "flex";
-        scrollRight.style.display =
-          scroller.scrollLeft >= scroller.scrollWidth - scroller.clientWidth
-            ? "none"
-            : "flex";
-      };
-
-      scroller.addEventListener("scroll", checkScroll);
-      checkScroll();
-    });
-
-    // Filter functionality (similar to previous implementation)
-    const applyFilters = document.getElementById("applyFilters");
-    const eventType = document.getElementById("eventType");
-    const dateFilter = document.getElementById("dateFilter");
-    const sortBy = document.getElementById("sortBy");
-    const upcomingEvents = document.getElementById("upcomingEvents");
-    const eventCards = document.querySelectorAll(".event-card");
-
-    applyFilters.addEventListener("click", filterEvents);
-
-    function filterEvents() {
-      // Filter implementation would go here
-      // Similar to previous version but with Netflix-style UI
-    }
-  });
-</script>
-
-<%- include('partials/footer') %>
+    </script>
+  </body>
+</html>

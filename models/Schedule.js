@@ -8,7 +8,8 @@ const scheduleSchema = new mongoose.Schema({
   pricing: { type: String },
   type: { type: String, required: true },
   date: { type: Date, required: true },
-  time: { type: Number, required: true },
+ time: { type: String, required: true },
+
   image: { type: String }, // store filename or URL
   createdAt: { type: Date, default: Date.now }
 });

@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String },
   photo: { type: String },
   otp: String,
-  otpExpires: Date
+  otpExpires: Date,
+   isAdmin: { type: Boolean, default: false } // ✅ Add this
 });
 
 module.exports = mongoose.model('User', userSchema);
